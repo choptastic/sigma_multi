@@ -2,7 +2,7 @@
     wrapperid               :: id(),
     width=""                :: integer() | list(),
     maxheight=""            :: integer() | list(),
-    data=[]                 :: [{value(), label()}],
-    selected=[]             :: [value()],
+    data=[]                 :: [{text(), text()}],
+    selected=[]             :: [text() | integer()],
     orientation=vertical    :: horizontal | vertical
 }).
