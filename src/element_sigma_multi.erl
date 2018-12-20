@@ -57,18 +57,36 @@ vertical_rows(ID, Options) ->
 
 vertical_row(#option_group{text=Text, options=Opts}, ID) ->
     Header = #tablerow{cells=[
-        #tableheader{},
-        #tableheader{text=Text}
+        #tableheader{colspan=2, style="font-size:1.4em", text=Text}
     ]},
     [Header | vertical_rows(ID, Opts)];
 vertical_row({Value,Display},ID) ->
 	vertical_row({Value,Display,false},ID);
 vertical_row({Value,Display,Checked},ID) ->
+    CheckClass = wf:temp_id(),
+    LabelClass = wf:temp_id(),
+    MaybeBold = ?WF_IF(Checked, "font-weight:bold"),
 	#tablerow{cells=[
 		#tablecell{body=[
-			#checkbox{id=ID,value=wf:to_list(Value),checked=Checked}
+			#checkbox{
+                id=ID,
+                value=wf:to_list(Value),
+                checked=Checked,
+                class=CheckClass,
+                actions=#event{type=click, actions=[
+                    "if(objs('me').prop('checked')) {
+                        $('." ++ LabelClass ++ "').css('font-weight','bold');
+                    }else{
+                        $('." ++ LabelClass ++ "').css('font-weight','normal');
+                    }"
+                ]}
+            }
 		]},
-		#tablecell{body=Display}
+		#tablecell{body=[
+            #panel{text=Display, class=LabelClass, style=["cursor:pointer;", MaybeBold], actions=[
+                #event{type=click, actions="$('." ++ CheckClass ++ "').click();"}
+            ]}
+        ]}
 	]}.
 
 horizontal_table(ID,Options) ->
