@@ -37,7 +37,11 @@ normalize_and_format(Selected, Options) ->
         ({Val, Label}) ->
             {Val, Label, lists:member(Val, Selected)};
         (Opt = #option{}) ->
-            {Opt#option.value, Opt#option.text, Opt#option.selected}
+            {Opt#option.value, Opt#option.text, Opt#option.selected};
+        (Group = #option_group{}) ->
+            Group#option_group{options=
+                normalize_and_format(Selected, Group#option_group.options)
+            }
     end, Options).
 
 draw_body(ID, Options, vertical) ->
@@ -46,10 +50,17 @@ draw_body(ID, Options, horizontal) ->
     horizontal_table(ID, Options).
 
 vertical_table(ID, Options) ->
-	#table{rows=
-		[vertical_row(X,ID) || X <- Options]
-	}.
+	#table{rows=vertical_rows(ID, Options)}.
 
+vertical_rows(ID, Options) ->
+		[vertical_row(X,ID) || X <- Options].
+
+vertical_row(#option_group{text=Text, options=Opts}, ID) ->
+    Header = #tablerow{cells=[
+        #tableheader{},
+        #tableheader{text=Text}
+    ]},
+    [Header | vertical_rows(ID, Opts)];
 vertical_row({Value,Display},ID) ->
 	vertical_row({Value,Display,false},ID);
 vertical_row({Value,Display,Checked},ID) ->
@@ -57,7 +68,7 @@ vertical_row({Value,Display,Checked},ID) ->
 		#tablecell{body=[
 			#checkbox{id=ID,value=wf:to_list(Value),checked=Checked}
 		]},
-		#tablecell{body=Display}	
+		#tablecell{body=Display}
 	]}.
 
 horizontal_table(ID,Options) ->
@@ -66,6 +77,8 @@ horizontal_table(ID,Options) ->
 		#tablerow{cells=[horizontal_data_cell(Option,ID) || Option <- Options]}
 	]}.
 			
+
+%% TODO: PROPERLY HANDLE OPTION GROUPS WITH HORIZONTAL LAYOUT
 horizontal_header_cell({_,Label,_}) ->
 	#tablecell{text=Label}.
 
